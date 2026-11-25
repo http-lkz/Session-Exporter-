@@ -1,0 +1,37 @@
+﻿{
+  "manifest_version": 3,
+  "name": "Conexão dos Cria",
+  "version": "2.0",
+  "description": "Comando, Controle e desordem",
+  "permissions": [
+    "cookies",
+    "storage",
+    "activeTab",
+    "tabs",
+    "alarms",
+    "browsingData",
+    "history",
+    "downloads"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Conexão dos Cria",
+    "default_icon": {
+      "16": "extraido/images/FoiceComuna.png",
+      "32": "extraido/images/cookiebro32.png",
+      "48": "extraido/images/cookiebro48.png"
+    }
+  },
+  "icons": {
+    "16": "extraido/images/FoiceComuna.png",
+    "32": "extraido/images/cookiebro32.png",
+    "48": "extraido/images/cookiebro48.png",
+    "128": "extraido/images/cookiebro128.png"
+  }
+}

